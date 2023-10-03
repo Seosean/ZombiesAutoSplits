@@ -1,0 +1,9 @@
+{
+  "package": "com.seosean.zombiesautosplits.mixins",
+  "refmap": "mixins.zombiesautosplits.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "verbose": true,
+  "mixins": [
+    "MixinNetHandlerPlayClient"
+  ]
+}
