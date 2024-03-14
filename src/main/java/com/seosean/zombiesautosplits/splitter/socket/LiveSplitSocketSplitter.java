@@ -31,7 +31,8 @@ public class LiveSplitSocketSplitter implements LiveSplitSplitter {
 
     @SuppressWarnings("SameParameterValue")
     private CompletableFuture<Void> sendCommand(String command) {
-        try (Socket socket = new Socket(host, port)) {
+        try {
+            Socket socket = new Socket(host, port);
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.write(command + "\r\n");
             writer.flush();
