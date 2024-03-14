@@ -1,9 +1,7 @@
 package com.seosean.zombiesautosplits.handler;
 
 import com.seosean.zombiesautosplits.ZombiesAutoSplits;
-import com.seosean.zombiesautosplits.hudposition.ConfigGui;
 import com.seosean.zombiesautosplits.hudposition.DelayedTask;
-import com.seosean.zombiesautosplits.hudposition.sstapi.SSTApi;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,11 +16,6 @@ import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Objects;
-import java.util.concurrent.Delayed;
-
-import static com.seosean.showspawntime.ShowSpawnTime.ShowConfigTip;
-import static com.seosean.showspawntime.mapFile.Rounds.scoreboardTitle;
-import static com.seosean.showspawntime.utils.Utils.isInZombies;
 
 public class ConfigChangedHandler {
 
@@ -38,9 +31,6 @@ public class ConfigChangedHandler {
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.modID.equals(ZombiesAutoSplits.MODID)) {
             zombiesAutoSplits.reloadConfig();
-        }
-        if (SSTApi.isShowSpawnTimeInstalled() && event.configID != null && event.configID.equals("dummyID")) {
-            SSTApi.update();
         }
     }
 

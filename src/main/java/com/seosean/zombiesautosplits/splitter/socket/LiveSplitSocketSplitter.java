@@ -1,6 +1,8 @@
 package com.seosean.zombiesautosplits.splitter.socket;
 
 import com.seosean.zombiesautosplits.splitter.LiveSplitSplitter;
+import org.lwjgl.Sys;
+import scala.collection.DebugUtils;
 
 import java.io.*;
 import java.net.Socket;
@@ -29,22 +31,15 @@ public class LiveSplitSocketSplitter implements LiveSplitSplitter {
 
     @SuppressWarnings("SameParameterValue")
     private CompletableFuture<Void> sendCommand(String command) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
-        executor.execute(() -> {
-            try (Socket socket = new Socket(host, port);
-                 OutputStream outputStream = socket.getOutputStream();
-                 Writer writer = new OutputStreamWriter(outputStream)) {
-                writer.write(command + "\r\n");
-                writer.flush();
-
-                future.complete(null);
-            } catch (IOException e) {
-                future.completeExceptionally(e);
-            }
-        });
-
-        return future;
+        try (Socket socket = new Socket(host, port)) {
+            PrintWriter writer = new PrintWriter(socket.getOutputStream());
+            writer.write(command + "\r\n");
+            writer.flush();
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
 }

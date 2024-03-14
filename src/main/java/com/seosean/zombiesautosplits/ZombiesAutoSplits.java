@@ -1,8 +1,6 @@
 package com.seosean.zombiesautosplits;
 
-import com.seosean.zombiesautosplits.api.ApiManager;
-import com.seosean.zombiesautosplits.api.CoordinateApi;
-import com.seosean.zombiesautosplits.api.CoordinateApiImpl;
+import com.google.common.base.Supplier;
 import com.seosean.zombiesautosplits.handler.CommandHandler;
 import com.seosean.zombiesautosplits.handler.ConfigChangedHandler;
 import com.seosean.zombiesautosplits.handler.KeyInputHandler;
@@ -18,20 +16,23 @@ import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Mod(
-   modid = "zombiesautosplits",
+   modid = ZombiesAutoSplits.MODID,
         name = "Zombies AutoSplits",
-        version = "1.1",
+        version = "1.2",
         acceptedMinecraftVersions = "[1.8.9]",
         clientSideOnly = true,
         guiFactory = "com.seosean.zombiesautosplits.gui.ZombiesAutoSplitsGuiFactory")
@@ -41,6 +42,8 @@ public class ZombiesAutoSplits {
    public static final String MODID = "zombiesautosplits";
 
    public static ZombiesAutoSplits instance;
+
+   private boolean isShowSpawnTimeInstalled;
 
    private final KeyBinding autoSplitsKeybind = new KeyBinding("Toggle AutoSplits", Keyboard.KEY_NONE,
            "Tahmid's Mods");
@@ -56,6 +59,10 @@ public class ZombiesAutoSplits {
    private RenderTimeHandler renderTimeHandler;
 
    private LiveSplitSplitter splitter;
+
+   public boolean isShowSpawnTimeInstalled() {
+      return isShowSpawnTimeInstalled;
+   }
 
    public LiveSplitSplitter getSplitter() {
       return splitter;
@@ -106,35 +113,38 @@ public class ZombiesAutoSplits {
 
       fontRenderer = minecraft.fontRendererObj;
 
-      CoordinateApi apiInstance = new CoordinateApiImpl();
-      ApiManager.getInstance().registerApiInstance(CoordinateApi.class, apiInstance);
+      isShowSpawnTimeInstalled = ((Supplier<Boolean>) () -> {
+         List<ModContainer> mods = Loader.instance().getActiveModList();
+         for (ModContainer mod : mods) {
+            if ("showspawntime".equals(mod.getModId())) {
+               return true;
+            }
+         }
+         return false;
+      }).get();
    }
 
    public Configuration getConfig() {
       return config;
    }
 
-   public static double XSplitter;
-   public static double YSplitter;
-
    public void reloadConfig() {
       if (internalSplitter != null) {
          internalSplitter.cancel();
          internalSplitter = null;
       }
-      config.save();
 
-      LiveSplitSplitter splitter = createSplitter();
-      this.setSplitter(splitter);
+      config.save();
+      splitter = createSplitter();
+
       if (splitter instanceof InternalSplitter) {
          internalSplitter = (InternalSplitter) splitter;
          renderTimeHandler.setSplitter(internalSplitter);
       }
    }
 
-   private void setSplitter(LiveSplitSplitter splitter) {
-      this.splitter = Objects.requireNonNull(splitter, "splitter");
-   }
+   public static double XSplitter;
+   public static double YSplitter;
 
    private LiveSplitSplitter createSplitter() {
       config.load();

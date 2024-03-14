@@ -5,37 +5,38 @@ buildscript {
         jcenter()
         maven {
             name = "forge"
-            url = "https://files.minecraftforge.net/maven"
+            url = "http://files.minecraftforge.net/maven"
         }
         maven {
-            name = "sponge"
-            url = "https://repo.spongepowered.org/maven"
+            name = "jitpack"
+            url = "https://jitpack.io/"
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
-        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
+        classpath "com.github.CCBlueX:ForgeGradle:a3d86a5"
+        classpath "com.github.LxGaming:MixinGradle:d75e32e"
+        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.4"
     }
 }
+apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: "com.github.johnrengelman.shadow"
 
-
+/*
 // for people who want stable - not yet functional for MC 1.8.8 - we require the forgegradle 2.1 snapshot
-//plugins {
-//    id "net.minecraftforge.gradle.forge" version "2.0.2"
-//}
-
-version = "1.1"
+plugins {
+    id "net.minecraftforge.gradle.forge" version "2.0.2"
+}
+*/
+version = "1.2"
 group= "com.seosean.zombiesautosplits" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ZombiesAutoSplits"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 minecraft {
     version = "1.8.9-11.15.1.2318-1.8.9"
     runDir = "run"
-    
+
     // the mappings can be changed at any time, and must be in the following format.
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
@@ -45,6 +46,15 @@ minecraft {
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
+tasks.compileJava {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+}
+
+tasks.withType(JavaCompile){
+    options.encoding = "UTF-8"
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -52,37 +62,14 @@ repositories {
         url = 'http://repo.spongepowered.org/maven'
     }
 }
-
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
-
-def javaVersion = "1.8"
-
-tasks.withType(JavaCompile) {
-    options.fork = true
-    options.forkOptions.executable = file("F:/Java/jdk8/bin/javac")
-}
-
 dependencies {
-    provided('org.spongepowered:mixin:0.6.4-SNAPSHOT') {
-        exclude module: 'launchwrapper'
-        exclude module: 'guava'
-        exclude module: 'gson'
-        exclude module: 'commons-io'
-        exclude module: 'log4j-core'
-    }
-    compile (name:'OptiFine_HD_U_I7', ext:'jar')
-    compile files('lib/ShowSpawnTime-1.15.jar')
-
-
+    compile('org.spongepowered:mixin:0.7.11-SNAPSHOT')
+    annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
     //compile "some.group:artifact:version:classifier"
     //compile "some.group:artifact:version"
-      
+
     // real examples
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
@@ -113,9 +100,6 @@ jar {
             'TweakOrder': '0',
             'TweakClass': 'com.seosean.zombiesautosplits.tweaker.FMLLoadingPlugin'
     )
-//    manifest {
-//        attributes 'FMLAT': 'lobbyglow_at.cfg'
-//    }
 }
 
 configurations {
@@ -124,23 +108,38 @@ configurations {
 }
 
 processResources
-{
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+        {
+            // this will ensure that this task is redone when the versions change.
+            inputs.property "version", project.version
+            inputs.property "mcversion", project.minecraft.version
 
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+            // replace stuff in mcmod.info, nothing else
+            from(sourceSets.main.resources.srcDirs) {
+                include 'mcmod.info'
+
+                // replace version and mcversion
+                expand 'version':project.version, 'mcversion':project.minecraft.version
+            }
+
+            // copy everything else, thats not the mcmod.info
+            from(sourceSets.main.resources.srcDirs) {
+                exclude 'mcmod.info'
+            }
+        }
+
+reobf {
+    shadowJar { }
+}
+
+shadowJar {
+    dependencies {
+        exclude 'gson-2.2.4.jar'
+        exclude 'guava-17.0.jar'
+        exclude 'commons-io-2.4.jar'
+        exclude 'dummyThing'
+        exclude 'LICENSE.txt'
     }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-    }
+    finalizedBy 'reobfJar'
 }
 
 mixin {

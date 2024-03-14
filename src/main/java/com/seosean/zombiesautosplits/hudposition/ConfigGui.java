@@ -96,7 +96,6 @@ public class ConfigGui extends GuiScreen {
                   ZombiesAutoSplits.YSplitter = box.y;
                }
             }
-            ZombiesAutoSplits.getInstance().getConfig().save();
             this.mc.displayGuiScreen(null);
             break;
          }
@@ -115,17 +114,22 @@ public class ConfigGui extends GuiScreen {
                   }, 2);
                }
             }
-            ZombiesAutoSplits.getInstance().getConfig().save();
-            break;
-         }
-         default: {
-            ZombiesAutoSplits.getInstance().getConfig().save();
             break;
          }
       }
+      ZombiesAutoSplits.getInstance().getConfig().save();
    }
 
    public void onGuiClosed() {
+      for (HudCoordinate box : boxes) {
+         if (box.getContents() == 0) {
+            ZombiesAutoSplits.getInstance().getConfig().get(Configuration.CATEGORY_CLIENT, "XSplitter", -1).set(box.x);
+            ZombiesAutoSplits.getInstance().getConfig().get(Configuration.CATEGORY_CLIENT, "YSplitter", -1).set(box.y);
+            ZombiesAutoSplits.XSplitter = box.x;
+            ZombiesAutoSplits.YSplitter = box.y;
+         }
+      }
+      ZombiesAutoSplits.getInstance().getConfig().save();
       super.onGuiClosed();
    }
 }
